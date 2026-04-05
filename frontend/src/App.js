@@ -12,6 +12,17 @@ const GlobalStyle = () => (
     select { cursor: pointer; border: 1px solid #cbd5e1; border-radius: 6px; padding: 4px; font-size: 11px; outline: none; }
     .fade-in { animation: fadeIn 0.3s ease-in; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* AJUSTES MOBILE ESSENCIAIS */
+    @media (max-width: 600px) {
+      .hide-mobile { display: none !important; }
+      .mobile-grid { grid-template-columns: 1fr !important; gap: 10px !important; }
+      .nav-scroll { overflow-x: auto; white-space: nowrap; width: 100%; gap: 5px !important; padding: 5px 0; }
+      .top-bar-mobile { padding: 0 15px !important; height: auto !important; flex-direction: column; py: 10px; }
+      .brand-mobile { margin-bottom: 10px; width: 100%; justify-content: space-between; }
+      .main-content-mobile { margin: 15px auto !important; padding: 0 10px !important; }
+      .card-mobile { padding: 15px !important; }
+    }
   `}</style>
 );
 
@@ -61,7 +72,6 @@ export default function App() {
 
   useEffect(() => { if (session) carregarDados(); }, [session, carregarDados]);
 
-  // Busca Automática de CNPJ
   useEffect(() => {
     const cnpjLimpo = form.cnpj.replace(/\D/g, "");
     if (cnpjLimpo.length === 14 && !editandoId) {
@@ -73,7 +83,6 @@ export default function App() {
     }
   }, [form.cnpj, editandoId]);
 
-  // Cálculo de Estatísticas
   useEffect(() => {
     const resumo = mensalidades.reduce((acc, m) => {
       const v = parseFloat(m.valor) || 0;
@@ -124,7 +133,6 @@ export default function App() {
     window.open(`https://wa.me/55${tel.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, "_blank");
   };
 
-  // Dados dos Gráficos
   const dataPizza = [{ name: 'Lucro', value: stats.lucro }, { name: 'Custo', value: stats.custoTotal }];
   const COLORS = ['#10b981', '#f43f5e'];
   
@@ -138,7 +146,7 @@ export default function App() {
   if (!session) return (
     <div style={styles.loginPage}>
       <GlobalStyle />
-      <div style={styles.loginCard}>
+      <div style={{...styles.loginCard, width: '90%', maxWidth: 300}}>
         <h1 style={{ color: '#2563eb' }}>AlugPay</h1>
         <input style={styles.input} type="email" placeholder="E-mail" onChange={e => setEmail(e.target.value)} />
         <input style={styles.input} type="password" placeholder="Senha" onChange={e => setPassword(e.target.value)} />
@@ -154,21 +162,26 @@ export default function App() {
   return (
     <div style={styles.container}>
       <GlobalStyle />
-      <header style={styles.topBar}>
-        <div style={styles.brand}><div style={styles.logoCircle}>M</div><h2>AlugPay</h2></div>
-        <nav style={styles.navLinks}>
+      <header style={styles.topBar} className="top-bar-mobile">
+        <div style={styles.brand} className="brand-mobile">
+            <div style={{display:'flex', alignItems:'center', gap:10}}>
+                <div style={styles.logoCircle}>M</div><h2>AlugPay</h2>
+            </div>
+            <button style={{...styles.btnLogout, padding: '5px 10px', display: window.innerWidth < 600 ? 'block' : 'none'}} onClick={() => { localStorage.removeItem("token"); setSession(null); }}>Sair</button>
+        </div>
+        <nav style={styles.navLinks} className="nav-scroll">
           <button style={activeTab === "financeiro" ? styles.navBtnActive : styles.navBtn} onClick={() => setActiveTab("financeiro")}>Financeiro</button>
           <button style={activeTab === "clientes" ? styles.navBtnActive : styles.navBtn} onClick={() => setActiveTab("clientes")}>Clientes</button>
           <button style={activeTab === "relatorios" ? styles.navBtnActive : styles.navBtn} onClick={() => setActiveTab("relatorios")}>Relatórios</button>
         </nav>
-        <button style={styles.btnLogout} onClick={() => { localStorage.removeItem("token"); setSession(null); }}>Sair</button>
+        <button className="hide-mobile" style={styles.btnLogout} onClick={() => { localStorage.removeItem("token"); setSession(null); }}>Sair</button>
       </header>
 
-      <main style={styles.mainContent}>
-        <div style={styles.dashboardGridStats}>
-          <div style={styles.statCard}><small>CLIENTES</small><h3>{stats.totalClientes}</h3></div>
-          <div style={styles.statCard}><small>LUCRO REAL</small><h3 style={{color:'#10b981'}}>R$ {stats.lucro.toFixed(2)}</h3></div>
-          <div style={styles.statCard}><small>A RECEBER</small><h3 style={{color:'#f43f5e'}}>R$ {stats.pendente.toFixed(2)}</h3></div>
+      <main style={styles.mainContent} className="main-content-mobile">
+        <div style={styles.dashboardGridStats} className="mobile-grid">
+          <div style={styles.statCard} className="card-mobile"><small>CLIENTES</small><h3>{stats.totalClientes}</h3></div>
+          <div style={styles.statCard} className="card-mobile"><small>LUCRO REAL</small><h3 style={{color:'#10b981'}}>R$ {stats.lucro.toFixed(2)}</h3></div>
+          <div style={styles.statCard} className="card-mobile"><small>A RECEBER</small><h3 style={{color:'#f43f5e'}}>R$ {stats.pendente.toFixed(2)}</h3></div>
         </div>
 
         {activeTab !== "relatorios" && (
@@ -181,9 +194,9 @@ export default function App() {
         )}
 
         {mostrarForm && (
-            <section style={{...styles.card, border: '2px solid #2563eb'}} className="fade-in">
+            <section style={{...styles.card, border: '2px solid #2563eb'}} className="fade-in card-mobile">
                 <h3>{editandoId ? "📝 Editar Cliente" : "✨ Novo Cadastro"}</h3>
-                <div style={styles.gridForm}>
+                <div style={styles.gridForm} className="mobile-grid">
                     <input style={styles.input} placeholder="CNPJ" value={form.cnpj} onChange={e => setForm({...form, cnpj: maskCNPJ(e.target.value)})} />
                     <input style={styles.input} placeholder="Nome" value={form.nome} onChange={e => setForm({...form, nome: e.target.value})} />
                     <input style={styles.input} type="number" placeholder="Valor" value={form.valor} onChange={e => setForm({...form, valor: e.target.value})} />
@@ -196,43 +209,41 @@ export default function App() {
         )}
 
         {activeTab === "relatorios" ? (
-          <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(350px, 1fr))', gap:20}} className="fade-in">
-            <div style={styles.card}>
+          <div style={{display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(300px, 1fr))', gap:20}} className="fade-in">
+            <div style={styles.card} className="card-mobile">
                 <h4>Composição Financeira</h4>
-                <div style={{height:300}}><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={dataPizza} innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">{dataPizza.map((e,i)=><Cell key={i} fill={COLORS[i]}/>)}</Pie><Tooltip/><Legend/></PieChart></ResponsiveContainer></div>
+                <div style={{height:250}}><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={dataPizza} innerRadius={50} outerRadius={70} paddingAngle={5} dataKey="value">{dataPizza.map((e,i)=><Cell key={i} fill={COLORS[i]}/>)}</Pie><Tooltip/><Legend/></PieChart></ResponsiveContainer></div>
             </div>
-            <div style={styles.card}>
+            <div style={styles.card} className="card-mobile">
                 <h4>Projeção 6 Meses</h4>
-                <div style={{height:300}}><ResponsiveContainer width="100%" height="100%"><BarChart data={projecaoData}><CartesianGrid strokeDasharray="3 3"/><XAxis dataKey="mes"/><YAxis/><Tooltip/><Legend/><Bar dataKey="Receita" fill="#3b82f6"/><Bar dataKey="Lucro" fill="#10b981"/></BarChart></ResponsiveContainer></div>
+                <div style={{height:250}}><ResponsiveContainer width="100%" height="100%"><BarChart data={projecaoData}><CartesianGrid strokeDasharray="3 3"/><XAxis dataKey="mes"/><YAxis/><Tooltip/><Legend/><Bar dataKey="Receita" fill="#3b82f6"/><Bar dataKey="Lucro" fill="#10b981"/></BarChart></ResponsiveContainer></div>
             </div>
           </div>
         ) : activeTab === "financeiro" ? (
-          <section style={styles.card} className="fade-in">
+          <section style={styles.card} className="fade-in card-mobile">
             <div style={{display:'flex', justifyContent:'space-between', marginBottom:15, alignItems:'center'}}>
                 <h3 style={{margin:0}}>Mensalidades</h3>
-                <button onClick={() => fetchProtegido(`${API}/gerar-mensalidades`).then(()=>carregarDados())} style={styles.btnAction}>🔄 Gerar Mês</button>
+                <button onClick={() => fetchProtegido(`${API}/gerar-mensalidades`).then(()=>carregarDados())} style={{...styles.btnAction, fontSize: 10}}>🔄 Gerar Mês</button>
             </div>
             <input style={styles.inputSearch} placeholder="🔍 Buscar cliente..." onChange={e => setBusca(e.target.value)} />
             <table style={styles.table}>
-                <thead><tr><th align="left">Cliente</th><th align="center">Mês</th><th>Status</th><th align="right">Ação</th></tr></thead>
+                <thead><tr><th align="left">Cliente</th><th className="hide-mobile" align="center">Mês</th><th>Status</th><th align="right">Ação</th></tr></thead>
                 <tbody>
                 {mensalidades.filter(m => m.cliente_nome?.toLowerCase().includes(busca.toLowerCase())).map(m => {
                     const statusU = m.status?.toUpperCase();
                     const pago = ["PAGO", "PERMUTA", "ANTECIPADO"].includes(statusU);
                     return (
                     <tr key={m.id} className="table-row" style={{borderBottom:'1px solid #f1f5f9', height:55}}>
-                        <td>{m.cliente_nome}</td>
-                        <td align="center" style={{fontSize:12}}>{m.mes}/{m.ano}</td>
-                        <td align="center"><span style={{...styles.badge, background: pago ? (statusU === 'PERMUTA' ? '#e0f2fe':'#dcfce7') : '#fee2e2'}}>{m.status}</span></td>
+                        <td>
+                            <div style={{fontSize: 13, fontWeight: 600}}>{m.cliente_nome}</div>
+                            <div className="hide-mobile" style={{fontSize: 10, color: '#64748b'}}>{m.mes}/{m.ano}</div>
+                        </td>
+                        <td className="hide-mobile" align="center" style={{fontSize:12}}>{m.mes}/{m.ano}</td>
+                        <td align="center"><span style={{...styles.badge, fontSize: 8, padding: '2px 6px', background: pago ? (statusU === 'PERMUTA' ? '#e0f2fe':'#dcfce7') : '#fee2e2'}}>{m.status}</span></td>
                         <td align="right">
-                        {pago ? <button style={styles.btnDanger} onClick={()=>estornar(m.id)}>Estornar</button> : 
-                        <div style={{display:'flex', gap:5, justifyContent:'flex-end', alignItems:'center'}}>
-                            <button style={styles.btnSuccess} onClick={()=>pagar(m.id, "PAGO")}>Pagar</button>
-                            <select onChange={(e) => pagar(m.id, e.target.value)} defaultValue="">
-                                <option value="" disabled>+</option>
-                                <option value="PERMUTA">Permuta</option>
-                                <option value="ANTECIPADO">Antecipado</option>
-                            </select>
+                        {pago ? <button style={{...styles.btnDanger, padding: '4px 8px'}} onClick={()=>estornar(m.id)}>Estornar</button> : 
+                        <div style={{display:'flex', gap:3, justifyContent:'flex-end', alignItems:'center'}}>
+                            <button style={{...styles.btnSuccess, padding: '4px 8px'}} onClick={()=>pagar(m.id, "PAGO")}>Pagar</button>
                             <button style={styles.btnZap} onClick={()=>cobrarWhatsApp(m)}>💬</button>
                         </div>}
                         </td>
@@ -242,18 +253,18 @@ export default function App() {
             </table>
           </section>
         ) : (
-          <section style={styles.card} className="fade-in">
+          <section style={styles.card} className="fade-in card-mobile">
             <h3>Clientes Ativos</h3>
             <table style={styles.table}>
-                <thead><tr><th align="left">Nome</th><th align="right">Mensalidade</th><th align="right">Ações</th></tr></thead>
+                <thead><tr><th align="left">Nome</th><th className="hide-mobile" align="right">Valor</th><th align="right">Ações</th></tr></thead>
                 <tbody>
                 {clientes.map(c => (
                     <tr key={c.id} className="table-row" style={{borderBottom:'1px solid #f1f5f9', height:50}}>
                         <td><strong>{c.nome}</strong></td>
-                        <td align="right">R$ {parseFloat(c.valor).toFixed(2)}</td>
+                        <td className="hide-mobile" align="right">R$ {parseFloat(c.valor).toFixed(2)}</td>
                         <td align="right">
-                            <button style={styles.btnEdit} onClick={()=>prepararEdicao(c)}>Editar</button>
-                            <button style={styles.btnDelete} onClick={() => { if(window.confirm("Excluir?")) fetchProtegido(`${API}/clientes/${c.id}`,{method:'DELETE'}).then(()=>carregarDados()) }}>Excluir</button>
+                            <button style={{...styles.btnEdit, padding: '5px 8px'}} onClick={()=>prepararEdicao(c)}>✏️</button>
+                            <button style={{...styles.btnDelete, padding: '5px 8px'}} onClick={() => { if(window.confirm("Excluir?")) fetchProtegido(`${API}/clientes/${c.id}`,{method:'DELETE'}).then(()=>carregarDados()) }}>🗑️</button>
                         </td>
                     </tr>
                 ))}
